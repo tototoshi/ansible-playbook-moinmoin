@@ -1,0 +1,69 @@
+- hosts: all
+  sudo: yes
+  vars_files:
+    - vars/moinmoin.yml
+  tasks:
+
+    - name: Update apt cache
+      apt: update_cache=yes cache_valid_time=86400
+
+    - name: Ensure /opt exists
+      file: path=/opt state=directory
+
+    - name: Download moin tarball
+      get_url: url=http://static.moinmo.in/files/moin-{{ moin_version }}.tar.gz dest=/tmp/moin-{{ moin_version }}.tar.gz
+    - name: Unarchive tarball
+      unarchive: src=/tmp/moin-{{ moin_version }}.tar.gz dest=/opt copy=no
+    - name: Change permission
+      file: path=/opt/moin-{{ moin_version }} owner=www-data group=www-data recurse=yes
+    - name: symlinking
+      file: path=/opt/moin state=link src=/opt/moin-{{ moin_version }}
+
+    - name: Install apache2
+      apt: name=apache2
+
+    - template: src=etc/apache2/sites-available/moinmoin.conf dest=/etc/apache2/sites-available/moinmoin.conf
+      notify: reload apache2
+
+    - name: Enable site
+      command: a2ensite moinmoin
+      notify: reload apache2
+
+    - name: Enable mod_rewrite
+      apache2_module: name=rewrite
+      notify: reload apache2
+
+    - name: Enable mod_proxy
+      apache2_module: name=proxy
+      notify: reload apache2
+
+    - name: Enable mod_proxy
+      apache2_module: name=proxy_http
+      notify: reload apache2
+
+
+    - name: Install passlib for ansible/htpasswd
+      apt: name=python-passlib
+    - name: Basic auth
+      htpasswd: name="{{ basic_auth_user }}" password="{{ basic_auth_password }}" path=/etc/apache2/.htpasswd
+      notify: reload apache2
+
+    - name: Install supervisord
+      apt: name=supervisor
+    - copy: src=etc/supervisor/conf.d/moinmoin.conf dest=/etc/supervisor/conf.d/moinmoin.conf
+      notify: reload supervisor
+
+    # moinmoin configuration
+    - lineinfile: dest=/opt/moin/wikiconfig.py line="    page_front_page = u\"Home\"" insertafter="class LocalConfig"
+      notify: reload moinmoin
+
+    # moinmoin markdown plugin
+    - copy: src=opt/moin/wiki/data/plugin/parser/text_markdown.py dest=/opt/moin/wiki/data/plugin/parser/text_markdown.py
+
+  handlers:
+    - name: reload apache2
+      service: name=apache2 state=reloaded
+    - name: reload supervisor
+      command: /etc/init.d/supervisor force-reload
+    - name: reload moinmoin
+      command: supervisorctl restart moinmoin

@@ -1,0 +1,4 @@
+- moin_version: 1.9.8
+- hostname:
+- basic_auth_user:
+- basic_auth_password:

@@ -4,6 +4,9 @@
     - vars/moinmoin.yml
   tasks:
 
+    - name: backup
+      shell: cd /opt/moin/wiki && sudo tar zvcf /tmp/moin-data-{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}.tar.gz data
+
     - name: Update apt cache
       apt: update_cache=yes cache_valid_time=86400
 

@@ -16,7 +16,7 @@
     - name: Download moin tarball
       get_url: url=http://static.moinmo.in/files/moin-{{ moin_version }}.tar.gz dest=/tmp/moin-{{ moin_version }}.tar.gz
     - name: Unarchive tarball
-      unarchive: src=/tmp/moin-{{ moin_version }}.tar.gz dest=/opt copy=no
+      unarchive: src=/tmp/moin-{{ moin_version }}.tar.gz dest=/opt copy=no creates=/opt/moin-{{ moin_version }}
     - name: Change permission
       file: path=/opt/moin-{{ moin_version }} owner=www-data group=www-data recurse=yes
     - name: symlinking

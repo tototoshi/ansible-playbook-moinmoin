@@ -59,6 +59,10 @@
     # moinmoin configuration
     - lineinfile: dest=/opt/moin/wikiconfig.py line="    page_front_page = u\"Home\"" insertafter="class LocalConfig"
       notify: reload moinmoin
+    - lineinfile: dest=/opt/moin/wikiconfig.py line="    mail_from = u\"{{ mail_from }}\"" insertafter="class LocalConfig"
+      notify: reload moinmoin
+    - lineinfile: dest=/opt/moin/wikiconfig.py line="    mail_sendmail = u\"/usr/sbin/sendmail -t -i\"" insertafter="class LocalConfig"
+      notify: reload moinmoin
 
     # moinmoin markdown plugin
     - copy: src=opt/moin/wiki/data/plugin/parser/text_markdown.py dest=/opt/moin/wiki/data/plugin/parser/text_markdown.py

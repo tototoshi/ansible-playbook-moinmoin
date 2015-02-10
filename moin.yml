@@ -65,7 +65,13 @@
       notify: reload moinmoin
 
     # moinmoin markdown plugin
+    - apt: name=python-markdown
     - copy: src=opt/moin/wiki/data/plugin/parser/text_markdown.py dest=/opt/moin/wiki/data/plugin/parser/text_markdown.py
+      notify: reload moinmoin
+    - lineinfile: dest=/opt/moin/MoinMoin/web/static/htdocs/modernized/css/common.css line="@import url(\"codehilite.css\");" insertbefore=BOF
+      notify: reload moinmoin
+    - copy: src=opt/moin/MoinMoin/web/static/htdocs/modernized/css/codehilite.css dest=/opt/moin/MoinMoin/web/static/htdocs/modernized/css/codehilite.css
+      notify: reload moinmoin
 
   handlers:
     - name: reload apache2

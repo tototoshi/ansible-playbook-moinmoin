@@ -24,12 +24,10 @@
 
     - name: Install apache2
       apt: name=apache2
-
-    - template: src=etc/apache2/sites-available/moinmoin.conf dest=/etc/apache2/sites-available/moinmoin.conf
-      notify: reload apache2
+    - template: src=etc/apache2/sites-available/moinmoin.conf dest=/etc/apache2/sites-available/{{ hostname }}
 
     # Enable site and each module
-    - command: a2ensite moinmoin
+    - command: a2ensite {{ hostname }}
     - apache2_module: name=rewrite
     - apache2_module: name=proxy
     - apache2_module: name=proxy_http

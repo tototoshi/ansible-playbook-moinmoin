@@ -28,55 +28,35 @@
     - template: src=etc/apache2/sites-available/moinmoin.conf dest=/etc/apache2/sites-available/moinmoin.conf
       notify: reload apache2
 
-    - name: Enable site
-      command: a2ensite moinmoin
-      notify: reload apache2
+    # Enable site and each module
+    - command: a2ensite moinmoin
+    - apache2_module: name=rewrite
+    - apache2_module: name=proxy
+    - apache2_module: name=proxy_http
 
-    - name: Enable mod_rewrite
-      apache2_module: name=rewrite
-      notify: reload apache2
-
-    - name: Enable mod_proxy
-      apache2_module: name=proxy
-      notify: reload apache2
-
-    - name: Enable mod_proxy
-      apache2_module: name=proxy_http
-      notify: reload apache2
-
-
+    # Basic auth
     - name: Install passlib for ansible/htpasswd
       apt: name=python-passlib
     - name: Basic auth
       htpasswd: name="{{ basic_auth_user }}" password="{{ basic_auth_password }}" path=/etc/apache2/.htpasswd
-      notify: reload apache2
+
+    - name: reload apache2
+      service: name=apache2 state=reloaded
 
     - name: Install supervisord
       apt: name=supervisor
     - copy: src=etc/supervisor/conf.d/moinmoin.conf dest=/etc/supervisor/conf.d/moinmoin.conf
-      notify: reload supervisor
 
     # moinmoin configuration
     - lineinfile: dest=/opt/moin/wikiconfig.py line="    page_front_page = u\"Home\"" insertafter="class LocalConfig"
-      notify: reload moinmoin
     - lineinfile: dest=/opt/moin/wikiconfig.py line="    mail_from = u\"{{ mail_from }}\"" insertafter="class LocalConfig"
-      notify: reload moinmoin
     - lineinfile: dest=/opt/moin/wikiconfig.py line="    mail_sendmail = u\"/usr/sbin/sendmail -t -i\"" insertafter="class LocalConfig"
-      notify: reload moinmoin
 
     # moinmoin markdown plugin
     - apt: name=python-markdown
     - copy: src=opt/moin/wiki/data/plugin/parser/text_markdown.py dest=/opt/moin/wiki/data/plugin/parser/text_markdown.py
-      notify: reload moinmoin
     - lineinfile: dest=/opt/moin/MoinMoin/web/static/htdocs/modernized/css/common.css line="@import url(\"codehilite.css\");" insertbefore=BOF
-      notify: reload moinmoin
     - copy: src=opt/moin/MoinMoin/web/static/htdocs/modernized/css/codehilite.css dest=/opt/moin/MoinMoin/web/static/htdocs/modernized/css/codehilite.css
-      notify: reload moinmoin
 
-  handlers:
-    - name: reload apache2
-      service: name=apache2 state=reloaded
-    - name: reload supervisor
-      command: /etc/init.d/supervisor force-reload
     - name: reload moinmoin
       command: supervisorctl restart moinmoin

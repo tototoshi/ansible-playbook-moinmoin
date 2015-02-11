@@ -3,3 +3,4 @@
 - basic_auth_user:
 - basic_auth_password:
 - mail_from:
+- python_interpreter_path: /usr/bin/python
